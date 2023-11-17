@@ -1,0 +1,13 @@
+*.pyc
+all_good_vis/
+__pycache__
+*.tar
+.idea
+run/
+ViT/experiments/
+ViT/visualizations/
+bert_models/
+data/movies/
+
+*.ipynb
+*.JPEG
