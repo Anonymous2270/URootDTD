@@ -241,69 +241,26 @@ class DTDOpt(nn.Module):
 
 # --------------------------------经常更改的部分----------------------------------------------------------
     def backprop_dense(self, activation, module, R, r_layer=None):
-        # wp = torch.clamp(module.weight, min=0)
-        # xp = torch.clamp(activation, min=0)
-        # root = rel_sup_root_1st_cnn(xp, R, the_layer=['linear', wp])
-        # signal = activation - root
-        # Z = F.linear(signal, module.weight)  #
-        # R = dtd_linear_piecewise_sample(x=signal, w=module.weight, z=Z, under_R=Z, R=R, root_zero=root, func=F.linear)
-
         wp = torch.clamp(module.weight, min=0)
-        wn = torch.clamp(module.weight, max=0)  # 负
-        xp = torch.clamp(activation, min=0)
-        xn = torch.clamp(activation, max=0)
-
-        zp = F.linear(xp, wp)
-        zn = F.linear(xn, wn)
-        Rp = R * zp / (zp + zn)
-        Rn = R * zn / (zp + zn)
-
-        root_p = rel_sup_root_1st_cnn(xp, Rp, the_layer=['linear', wp])
-        root_n = rel_sup_root_1st_cnn(xn, Rn, the_layer=['linear', wn])
-        signal_p = xp - root_p
-        signal_n = xn - root_n
+        root_p = rel_sup_root_1st_cnn(activation, R, the_layer=['linear', wp])
+        signal_p = activation - root_p
 
         zp = F.linear(signal_p, wp)
-        zn = F.linear(signal_n, wn)
-        Rp = R * zp / (zp + zn)
-        Rn = R * zn / (zp + zn)
+        cp = dtd_linear_piecewise_sample(x=signal_p, w=wp, z=zp, under_R=zp, R=R, root_zero=root_p, func=F.linear)
 
-        cp = dtd_linear_piecewise_sample(x=signal_p, w=wp, z=zp, under_R=zp, R=Rp, root_zero=root_p, func=F.linear)
-        cn = dtd_linear_piecewise_sample(signal_n, wn, z=zn, under_R=zn, R=Rn, root_zero=root_n, func=F.linear)
-        R = cp + cn
+        R = cp
         return R, ['linear', module.weight]
 
     def backprop_conv(self, activation, module, R, layer_idx=9, r_layer=None):
         stride, padding, kernel = module.stride, module.padding, module.kernel_size
-        # wp = torch.clamp(module.weight, min=0)
-        # xp = torch.clamp(activation, min=0)
-        # root = rel_sup_root_1st_cnn(xp, R, the_layer=['conv2d', wp, stride, padding])
-        # signal = activation - root
-        # Z = F.conv2d(signal, module.weight, stride=stride, padding=padding) + 1e-9
-        # R = dtd_conv_piecewise_sample(signal, module.weight, stride, padding, Z, Z, R, root_zero=root, func=F.conv2d)
-
         wp = torch.clamp(module.weight, min=0)
-        wn = torch.clamp(module.weight, max=0)  # 负
-        xp = torch.clamp(activation, min=0)
-        # xn = torch.clamp(activation, max=0)
 
-        # zp = F.conv2d(xp, wp, stride=stride, padding=padding)
-        # zn = F.conv2d(xn, wn, stride=stride, padding=padding)
-        # Rp = R * zp / (zp + zn)
-        # Rn = R * zn / (zp + zn)
-
-        root_p = rel_sup_root_1st_cnn(xp, R, the_layer=['conv2d', wp, stride, padding])
-        # root_n = rel_sup_root_1st_cnn(xn, Rn, the_layer=['conv2d', wn, stride, padding])
-        signal_p = xp - root_p
-        # signal_n = xn - root_n
+        root_p = rel_sup_root_1st_cnn(activation, R, the_layer=['conv2d', wp, stride, padding])
+        signal_p = activation - root_p
 
         zp = F.conv2d(signal_p, wp, stride=stride, padding=padding)
-        # zn = F.conv2d(signal_n, wn, stride=stride, padding=padding)
-        # Rp = R*zp/(zp+zn)
-        # Rn = R*zn/(zp+zn)
 
         cp = dtd_conv_piecewise_sample(signal_p, wp, stride, padding, z=zp, under_R=zp, R=R, root_zero=root_p)
-        # cn = dtd_conv_piecewise_sample(signal_n, wn, stride, padding, z=zn, under_R=zn, R=Rn, root_zero=root_n)
         R = cp
 
         if layer_idx == 8:
@@ -325,29 +282,19 @@ class DTDOpt(nn.Module):
 
     def backprop_conv_input(self, x, module, R, r_layer=None):
         stride, padding, kernel = module.stride, module.padding, module.kernel_size
-        # x = torch.ones_like(x, dtype=x.dtype, requires_grad=True)
-        # wp = torch.clamp(module.weight, min=0)
-        # root = rel_sup_root_1st_cnn(x, R, the_layer=['conv2d', wp, stride, padding])
-        # signal = x - root
-        # Z = F.conv2d(signal, module.weight, stride=stride, padding=padding) + 1e-9
-        # R = dtd_conv_piecewise_sample(signal, module.weight, stride, padding, Z, Z, R, root_zero=root, func=F.conv2d)
-
         wp = torch.clamp(module.weight, min=0)
         wn = torch.clamp(module.weight, max=0)
 
-        xp = torch.ones_like(x, dtype=x.dtype, requires_grad=True)
-        xn = torch.ones_like(x, dtype=x.dtype, requires_grad=True)  # 0
+        x = torch.ones_like(x, dtype=x.dtype, requires_grad=True)
 
-        root_p = rel_sup_root_1st_cnn(x, R, the_layer=['conv2d', wp, stride, padding])
+        root = rel_sup_root_1st_cnn(x, R, the_layer=['conv2d', wp, stride, padding])
+        signal = x - root
 
-        signal_p = xp - root_p
-        signal_n = xn - root_p
+        zp = F.conv2d(signal, wp, stride=stride, padding=padding)
+        zn = F.conv2d(signal, wn, stride=stride, padding=padding)
 
-        zp = F.conv2d(signal_p, wp, stride=stride, padding=padding)
-        zn = F.conv2d(signal_n, wn, stride=stride, padding=padding)
-
-        cp = dtd_conv_piecewise_sample(signal_p, wp, stride, padding, z=zp, under_R=zp, R=R, root_zero=root_p)
-        cn = dtd_conv_piecewise_sample(signal_n, wn, stride, padding, z=zn, under_R=zn, R=R, root_zero=root_p)
+        cp = dtd_conv_piecewise_sample(signal, wp, stride, padding, z=zp, under_R=zp, R=R, root_zero=root)
+        cn = dtd_conv_piecewise_sample(signal, wn, stride, padding, z=zn, under_R=zn, R=R, root_zero=root)
         R = cp + cn
         return R
 
