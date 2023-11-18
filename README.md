@@ -4,7 +4,7 @@ CVPR2024-paper5841: "Universal Root Inference and Calculation for Deep Taylor De
 
 ## Usage:
 
-run vis_graphic_abstract.py for graphical visualization.
+run vis_graphic_abstract.py for graphical abstract visualization.
 
 run vis_all_baselines.py for comparative illustration.
 
