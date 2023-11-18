@@ -1,11 +1,4 @@
 # encoding: utf-8
-"""
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2022/9/29 20:26
- @desc:
-"""
-
 from PIL import Image
 import matplotlib.pyplot as plt
 import torch
@@ -18,7 +11,7 @@ import os
 from torchvision import transforms
 from CNNs.baselines import lrp_0 as lrp_0
 from CNNs.baselines import lrp_g as dtd_g
-from CNNs.baselines import lrp_v as dtd_v
+from CNNs.baselines import lrp_e as dtd_e
 from CNNs.baselines import dtd_ww as dtd_ww
 from CNNs.baselines import dtd_z_b as dtd_zb
 from CNNs.baselines import dtd_z_plus as dtd_zp
@@ -74,25 +67,28 @@ def file_scanf2(path, contains, endswith, is_random=False, sub_ratio=1.0):
 
 
 if __name__ == "__main__":
-    file = open('/data1/zhangxin/Datasets/ImageNet/a.txt', 'w')
-    data_path = '/data1/zhangxin/Datasets/ImageNet/train'
+    data_path = 'data/samples'
     file_names = []
-    for root, dirs, files in os.walk(data_path):
-        for sub_dir in dirs:
-            # if sub_dir != 'n01443537':
-            #     continue
-            imgs = file_scanf2(path=data_path + '/' + sub_dir,
-
-                               contains=[
-                                   'n',
-                                   # 'n01443537_9651', 'n01443537_3032', 'n01443537_1219', 'n01443537_6620',
-                                   # 'n01443537_11018', 'n01443537_11018', 'n01443537_16422', 'n01443537_21526',
-                                   # 'n01537544_2375', 'n01582220_392', 'n01614925_2400', 'n02113712_10565',
-                                   # 'n02690373_4225',
-                               ],
-                               endswith='.JPEG',
-                               is_random=True, sub_ratio=0.01)
-            file_names.extend(imgs)
+    # for root, dirs, files in os.walk(data_path):
+    #     for sub_dir in files:
+    #         imgs = file_scanf2(path=data_path + '/' + sub_dir,
+    #                            contains=[
+    #                                'n',
+    #                                # 'n01443537_9651', 'n01443537_3032', 'n01443537_1219', 'n01443537_6620',
+    #                                # 'n01443537_11018', 'n01443537_11018', 'n01443537_16422', 'n01443537_21526',
+    #                                # 'n01537544_2375', 'n01582220_392', 'n01614925_2400', 'n02113712_10565',
+    #                                # 'n02690373_4225'
+    #                            ],
+    #                            endswith='.JPEG',
+    #                            is_random=True, sub_ratio=1)
+    #         file_names.extend(imgs)
+    imgs = file_scanf2(path=data_path,
+                       contains=[
+                           'n',
+                       ],
+                       endswith='.JPEG',
+                       is_random=True, sub_ratio=1)
+    file_names.extend(imgs)
 
     model = resnet18(pretrained=True).cuda()
     model.train(False)
@@ -102,11 +98,11 @@ if __name__ == "__main__":
     DTDm = dtd_m.DTD().cuda()
     DTD0 = lrp_0.DTD().cuda()
     DTDg = dtd_g.DTD().cuda()
-    DTDv = dtd_v.DTD().cuda()
+    DTDe = dtd_e.DTD().cuda()
     DTDww = dtd_ww.DTD().cuda()
     act_net_base1 = lrp_0.ActivationStoringNet(lrp_0.model_flattening(model)).cuda()
     act_net_base2 = dtd_g.ActivationStoringNet(dtd_g.model_flattening(model)).cuda()
-    act_net_base3 = dtd_v.ActivationStoringNet(dtd_v.model_flattening(model)).cuda()
+    act_net_base3 = dtd_e.ActivationStoringNet(dtd_e.model_flattening(model)).cuda()
     act_net_base4 = dtd_zp.ActivationStoringNet(dtd_zp.model_flattening(model)).cuda()
     act_net_base5 = dtd_zb.ActivationStoringNet(dtd_zb.model_flattening(model)).cuda()
     act_net_base6 = dtd_m.ActivationStoringNet(dtd_m.model_flattening(model)).cuda()
@@ -116,7 +112,6 @@ if __name__ == "__main__":
     OptDTD = sa_opt.DTDOpt().cuda()
 
     for f in file_names:
-        file.write(str(f) + '\n')
         image = Image.open(f)
         if image.mode != 'RGB':
             continue
@@ -134,19 +129,18 @@ if __name__ == "__main__":
         module_stack_our, output_our = act_net_opt(input_tensor)
 
         class_indices = print_top_classes(output1)
-        pre_idx = class_indices[0]
+        # pre_idx = class_indices[0]
         # pre_dir = dir_dict[pre_idx]
-        true_dir = f.split('/')[-2]
-        true_idx = idx_dict[true_dir]
-        if true_idx == pre_idx:
-            title = 'Y'
-        else:
-            title = 'N'
+        # true_dir = f.split('/')[-2]
+        # true_idx = idx_dict[true_dir]
+        # if true_idx == pre_idx:
+        #     title = 'Y'
+        # else:
+        #     title = 'N'
 
-        # cat - the predicted class
         saliency_0 = DTD0(module_stack1, output1, 1000, 'resnet')
         saliency_g = DTDg(module_stack2, output2, 1000, 'resnet')
-        saliency_v = DTDv(module_stack3, output3, 1000, 'resnet')
+        saliency_e = DTDe(module_stack3, output3, 1000, 'resnet')
         saliency_zp = DTDZp(module_stack4, output4, 1000, 'resnet')
         saliency_zb = DTDZb(module_stack5, output5, 1000, 'resnet')
         saliency_m = DTDm(module_stack6, output6, 1000, 'resnet')
@@ -155,19 +149,18 @@ if __name__ == "__main__":
 
         vis_0 = visualize_cam(saliency_0, mean_cropping=False)
         vis_g = visualize_cam(saliency_g, mean_cropping=False)
-        vis_v = visualize_cam(saliency_v, mean_cropping=False)
+        vis_e = visualize_cam(saliency_e, mean_cropping=False)
         vis_zp = visualize_cam(saliency_zp, mean_cropping=True)
         vis_zb = visualize_cam(saliency_zb, mean_cropping=False)
         vis_m = visualize_cam(saliency_m, mean_cropping=False)
         vis_ww = visualize_cam(saliency_ww, mean_cropping=False)
         vis_our = visualize_cam(saliency_our, mean_cropping=True)
-        # vis3, vis4 = OptDTD.get_feature_map()
 
         fig, axs = plt.subplots(1, 9)
         plt.subplots_adjust(wspace=0.05, hspace=0.05)  # 调整子图间距
         axs[0].imshow(re_img)
         axs[0].axis('off')
-        axs[0].set_title(title + '-' + name_dict[true_idx])
+        # axs[0].set_title(title + '-' + name_dict[true_idx])
         # axs[1].imshow(vis1, cmap="turbo", clim=(0, 1))
         axs[1].imshow(vis_0)
         axs[1].axis('off')
@@ -175,9 +168,9 @@ if __name__ == "__main__":
         axs[2].imshow(vis_g)
         axs[2].axis('off')
         axs[2].set_title('g')
-        axs[3].imshow(vis_v)
+        axs[3].imshow(vis_e)
         axs[3].axis('off')
-        axs[3].set_title('v')
+        axs[3].set_title('e')
         axs[4].imshow(vis_ww)
         axs[4].axis('off')
         axs[4].set_title('ww')
@@ -195,8 +188,7 @@ if __name__ == "__main__":
         axs[8].set_title('Ours')
 
         save_name = f.split('/')[-1].replace('.JPEG', '_')
-        plt.savefig('/data1/zhangxin/Datasets/ImageNet/test_cnn'
+        plt.savefig('data/output'
                     '/' + save_name + ".jpg", dpi=300)
         plt.clf()
         # plt.close('all')
-    file.close()

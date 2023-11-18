@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2023/11/8 23:19
- @desc:
-"""
 import einops
 import torch
 from tqdm import tqdm

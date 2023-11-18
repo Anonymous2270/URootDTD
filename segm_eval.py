@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2023/11/7 16:29
- @desc:
-"""
-
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
@@ -112,7 +105,7 @@ def eval(model, loader):
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method('spawn')
 
-    imagenet_ds = VOCSegmentation('/data1/zhangxin/Datasets/voc/', download=False)
+    imagenet_ds = VOCSegmentation('/path/to/Datasets/voc/', download=False)
     # imagenet_ds = ImagenetSegDataset()
 
     loader = torch.utils.data.DataLoader(

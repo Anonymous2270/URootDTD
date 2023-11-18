@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2023/10/11 20:37
  @desc: Forked from https://github.com/myc159/Deep-Taylor-Decomposition/blob/master/model/saliency_mapping.py
 """
 from CNNs.resnet import BasicBlock, Bottleneck
@@ -247,12 +244,6 @@ class DTDOpt(nn.Module):
 
 # --------------------------------经常更改的部分----------------------------------------------------------
     def backprop_dense(self, activation, module, R, r_layer=None):
-        # wp = torch.clamp(module.weight, min=0)
-        # xp = torch.clamp(activation, min=0)
-        # root = rel_sup_root_1st_cnn(xp, R, the_layer=['linear', wp])
-        # signal = activation - root
-        # Z = F.linear(signal, module.weight)  #
-        # R = dtd_linear_piecewise_sample(x=signal, w=module.weight, z=Z, under_R=Z, R=R, root_zero=root, func=F.linear)
 
         wp = torch.clamp(module.weight, min=0)
         wn = torch.clamp(module.weight, max=0)  # 负
@@ -281,12 +272,6 @@ class DTDOpt(nn.Module):
 
     def backprop_conv(self, activation, module, R, layer_idx=9, r_layer=None):
         stride, padding, kernel = module.stride, module.padding, module.kernel_size
-        # wp = torch.clamp(module.weight, min=0)
-        # xp = torch.clamp(activation, min=0)
-        # root = rel_sup_root_1st_cnn(xp, R, the_layer=['conv2d', wp, stride, padding])
-        # signal = activation - root
-        # Z = F.conv2d(signal, module.weight, stride=stride, padding=padding) + 1e-9
-        # R = dtd_conv_piecewise_sample(signal, module.weight, stride, padding, Z, Z, R, root_zero=root, func=F.conv2d)
 
         wp = torch.clamp(module.weight, min=0)
         wn = torch.clamp(module.weight, max=0)  # 负
@@ -315,28 +300,22 @@ class DTDOpt(nn.Module):
         if layer_idx == 8:
             self.signal_map_7 = R
             self.root_map = root_p
-        # if layer_idx == 1:
-        #     self.signal_map_1 = R
-        # if layer_idx == 3:
-        #     self.signal_map_3 = R
-        # if layer_idx == 5:
-        #     self.signal_map_5 = R
-        # if layer_idx == 7:
-        #     self.signal_map_7 = R
-        # if layer_idx == 9:
-        #     self.signal_map_9 = R
-        # if layer_idx == 11:
-        #     self.signal_map_11 = R
+        if layer_idx == 1:
+            self.signal_map_1 = R
+        if layer_idx == 3:
+            self.signal_map_3 = R
+        if layer_idx == 5:
+            self.signal_map_5 = R
+        if layer_idx == 7:
+            self.signal_map_7 = R
+        if layer_idx == 9:
+            self.signal_map_9 = R
+        if layer_idx == 11:
+            self.signal_map_11 = R
         return R, ['conv2d', module.stride, stride, padding]
 
     def backprop_conv_input(self, x, module, R, r_layer=None):
         stride, padding, kernel = module.stride, module.padding, module.kernel_size
-        # x = torch.ones_like(x, dtype=x.dtype, requires_grad=True)
-        # wp = torch.clamp(module.weight, min=0)
-        # root = rel_sup_root_1st_cnn(x, R, the_layer=['conv2d', wp, stride, padding])
-        # signal = x - root
-        # Z = F.conv2d(signal, module.weight, stride=stride, padding=padding) + 1e-9
-        # R = dtd_conv_piecewise_sample(signal, module.weight, stride, padding, Z, Z, R, root_zero=root, func=F.conv2d)
 
         wp = torch.clamp(module.weight, min=0)
         wn = torch.clamp(module.weight, max=0)

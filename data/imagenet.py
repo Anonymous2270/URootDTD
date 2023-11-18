@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2023/11/4 14:39
- @desc:
-"""
 import os
 import glob
 import torch
@@ -57,7 +51,7 @@ def file_scanf2(path, contains, endswith, is_random=False, sub_ratio=1.0):
 class ImagenetDataset(data.Dataset):
     def __init__(self, img_transfer=True):
         super(ImagenetDataset, self).__init__()
-        data_path = '/data1/zhangxin/Datasets/ImageNet/train'
+        data_path = '/path/to/Datasets/ImageNet/train'
         self.file_names = []
         for root, dirs, files in os.walk(data_path):
             for sub_dir in dirs:
@@ -100,7 +94,7 @@ class ImagenetDataset(data.Dataset):
 class ImagenetSegDataset(data.Dataset):
     def __init__(self, transform=None, target_transform=None):
         super(ImagenetSegDataset, self).__init__()
-        data_path = '/data1/zhangxin/Datasets/ImageNetS/ImageNetS50'
+        data_path = '/path/to/Datasets/ImageNetS/ImageNetS50'
         img_path = data_path + '/'+'train-semi'
 
         self.img_names = []
@@ -281,9 +275,6 @@ if __name__ == '__main__':
     import torchvision.transforms as transforms
     from tqdm import tqdm
     from imageio import imsave
-    import scipy.io as sio
-
-    # meta = sio.loadmat('/home/shirgur/ext/Data/Datasets/temp/ILSVRC2012_devkit_t12/dataset/meta.mat', squeeze_me=True)['synsets']
 
     # Data
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -297,11 +288,11 @@ if __name__ == '__main__':
         transforms.Resize((224, 224), Image.NEAREST),
     ])
 
-    ds = Imagenet_Segmentation('/home/shirgur/ext/Data/Datasets/imagenet-seg/other/gtsegs_ijcv.mat',
+    ds = Imagenet_Segmentation('/path/to/Datasets/imagenet-seg/other/gtsegs_ijcv.mat',
                                transform=test_img_trans, target_transform=test_lbl_trans)
 
     for i, (img, tgt) in enumerate(tqdm(ds)):
         tgt = (tgt.numpy() * 255).astype(np.uint8)
-        imsave('/home/shirgur/ext/Code/C2S/run/imagenet/gt/{}.png'.format(i), tgt)
+        imsave('/path/to/imagenet/gt/{}.png'.format(i), tgt)
 
     print('here')

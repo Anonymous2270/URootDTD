@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2023/10/11 20:37
  @desc: Forked from https://github.com/myc159/Deep-Taylor-Decomposition/blob/master/model/saliency_mapping.py
 """
 

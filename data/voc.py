@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2023/11/6 13:02
- @desc:  Forked from https://github.com/shirgur/AGFVisualization/blob/master/data/VOC.py
-"""
 import os
 import tarfile
 import torch

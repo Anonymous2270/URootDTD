@@ -1,13 +1,5 @@
 
 # encoding: utf-8
-"""
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2022/9/29 20:27
- @desc:
-"""
-
-
 CLS2IDX = {0: 'tench, Tinca tinca',
  1: 'goldfish, Carassius auratus',
  2: 'great white shark, white shark, man-eater, man-eating shark, Carcharodon carcharias',

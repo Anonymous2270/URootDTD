@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2023/11/4 16:08
- @desc:
-"""
 import cv2
 import einops
 import torch

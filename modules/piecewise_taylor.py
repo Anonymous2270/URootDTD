@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
- @author: Xin Zhang
- @contact: 2250271011@email.szu.edu.cn
- @time: 2023/10/12 19:43
- @desc:
-"""
 import numpy as np
 import torch
 import torch.nn.functional as F
