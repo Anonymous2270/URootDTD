@@ -242,26 +242,32 @@ class DTDOpt(nn.Module):
 # --------------------------------经常更改的部分----------------------------------------------------------
     def backprop_dense(self, activation, module, R, r_layer=None):
         wp = torch.clamp(module.weight, min=0)
-        root_p = rel_sup_root_1st_cnn(activation, R, the_layer=['linear', wp])
-        signal_p = activation - root_p
+        wn = torch.clamp(module.weight, max=0)
 
-        zp = F.linear(signal_p, wp)
-        cp = dtd_linear_piecewise_sample(x=signal_p, w=wp, z=zp, under_R=zp, R=R, root_zero=root_p, func=F.linear)
+        root = rel_sup_root_1st_cnn(activation, R, the_layer=['linear', wp])
+        signal = activation - root
 
-        R = cp
+        zp = F.linear(signal, wp)  #
+        zn = F.linear(signal, wn)  #
+        Rp = dtd_linear_piecewise_sample(x=signal, w=wp, z=zp, under_R=zp, R=R, root_zero=root, func=F.linear)
+        Rn = dtd_linear_piecewise_sample(x=signal, w=wn, z=zn, under_R=zn, R=R, root_zero=root, func=F.linear)
+        R = Rp + Rn
         return R, ['linear', module.weight]
 
     def backprop_conv(self, activation, module, R, layer_idx=9, r_layer=None):
         stride, padding, kernel = module.stride, module.padding, module.kernel_size
         wp = torch.clamp(module.weight, min=0)
+        wn = torch.clamp(module.weight, max=0)
 
         root_p = rel_sup_root_1st_cnn(activation, R, the_layer=['conv2d', wp, stride, padding])
         signal_p = activation - root_p
 
         zp = F.conv2d(signal_p, wp, stride=stride, padding=padding)
+        zn = F.conv2d(signal_p, wn, stride=stride, padding=padding)
 
         cp = dtd_conv_piecewise_sample(signal_p, wp, stride, padding, z=zp, under_R=zp, R=R, root_zero=root_p)
-        R = cp
+        cn = dtd_conv_piecewise_sample(signal_p, wn, stride, padding, z=zn, under_R=zn, R=R, root_zero=root_p)
+        R = cp + cn
 
         if layer_idx == 8:
             self.signal_map_7 = R
@@ -283,19 +289,18 @@ class DTDOpt(nn.Module):
     def backprop_conv_input(self, x, module, R, r_layer=None):
         stride, padding, kernel = module.stride, module.padding, module.kernel_size
         wp = torch.clamp(module.weight, min=0)
-        wn = torch.clamp(module.weight, max=0)
-
+        # wn = torch.clamp(module.weight, max=0)
         x = torch.ones_like(x, dtype=x.dtype, requires_grad=True)
 
         root = rel_sup_root_1st_cnn(x, R, the_layer=['conv2d', wp, stride, padding])
         signal = x - root
 
         zp = F.conv2d(signal, wp, stride=stride, padding=padding)
-        zn = F.conv2d(signal, wn, stride=stride, padding=padding)
+        # zn = F.conv2d(signal, wn, stride=stride, padding=padding)
 
-        cp = dtd_conv_piecewise_sample(signal, wp, stride, padding, z=zp, under_R=zp, R=R, root_zero=root)
-        cn = dtd_conv_piecewise_sample(signal, wn, stride, padding, z=zn, under_R=zn, R=R, root_zero=root)
-        R = cp + cn
+        Rp = dtd_conv_piecewise_sample(signal, wp, stride, padding, z=zp, under_R=zp, R=R, root_zero=root)
+        # Rn = dtd_conv_piecewise_sample(signal, wn, stride, padding, z=zn, under_R=zn, R=R, root_zero=root)
+        R = Rp
         return R
 
     def backprop_bn(self, R, ups=None):
@@ -304,12 +309,11 @@ class DTDOpt(nn.Module):
     def backprop_dropout(self, R, ups=None):
         return R, ['drop']
 
-
     def backprop_relu(self, activation, R, r_layer=None):
-        root = rel_sup_root_1st_cnn(activation, R, the_layer=['relu'])
-        signal = activation - root
-        Z = F.relu(signal)  #
-        R = dtd_act_piecewise_sample(signal, Z, Z, R, root_zero=root, func=F.relu, step=50)
+        # root = rel_sup_root_1st_cnn(activation, R, the_layer=['relu'])
+        # signal = activation - root
+        # Z = F.relu(signal)  #
+        # R = dtd_act_piecewise_sample(signal, Z, Z, R, root_zero=root, func=F.relu, step=50)
         return R, ['relu']
 
     def backprop_adap_avg_pool(self, activation, R, r_layer=None):

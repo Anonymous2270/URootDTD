@@ -91,7 +91,7 @@ def rel_sup_root_2nd_cnn(x, R, step=50, the_layer=None, r_layer=None):
 
 
 def rel_sup_root_1st_cnn(x, R, step=50, the_layer=None, r_layer=None):
-    lr = 3
+    lr = 1.
     # scale_x = x.mean()
     x_new = x.clone().detach().requires_grad_(True)
 
