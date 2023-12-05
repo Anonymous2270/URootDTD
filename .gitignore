@@ -10,5 +10,4 @@ bert_models/
 data/movies/
 
 *.ipynb
-*.JPEG
 *.jpg
